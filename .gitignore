@@ -1,0 +1,6 @@
+node_modules/
+public/input/*
+public/output/*
+!public/input/.gitkeep
+!public/output/.gitkeep
+.DS_Store

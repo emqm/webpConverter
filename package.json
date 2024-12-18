@@ -1,0 +1,22 @@
+{
+    "name": "webpconverter",
+    "version": "1.0.0",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "nodemon src/index.js"
+    },
+    "keywords": [
+        "webp",
+        "converter",
+        "image",
+        "optimization"
+    ],
+    "author": "",
+    "license": "ISC",
+    "description": "Image converter tool for WebP format",
+    "dependencies": {
+        "express": "^4.21.2",
+        "sharp": "^0.33.5"
+    }
+}
