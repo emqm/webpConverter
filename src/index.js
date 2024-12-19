@@ -8,15 +8,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Multer 설정
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "src/public/input/");
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // 정적 파일 제공
@@ -40,12 +32,11 @@ app.post("/convert", upload.array("images"), async (req, res) => {
         };
 
         for (const file of files) {
-            const inputPath = file.path;
             const outputFileName = `${path.parse(file.originalname).name}.webp`;
             const outputPath = path.join("src/public/output", outputFileName);
 
             // 이미지 처리 파이프라인
-            let pipeline = sharp(inputPath);
+            let pipeline = sharp(file.buffer); // buffer 사용
 
             // 원본 이미지 메타데이터
             const metadata = await pipeline.metadata();
@@ -71,16 +62,15 @@ app.post("/convert", upload.array("images"), async (req, res) => {
 
             // 변환된 파일 정보
             const outputStats = await fs.stat(outputPath);
-            const originalStats = await fs.stat(inputPath);
+            const originalSize = file.size; // 원본 파일 크기는 메모리에서 가져옴
 
             results.push({
                 originalName: file.originalname,
                 webpName: outputFileName,
-                originalSize: originalStats.size,
+                originalSize: originalSize,
                 convertedSize: outputStats.size,
                 compressionRatio: (
-                    ((originalStats.size - outputStats.size) /
-                        originalStats.size) *
+                    ((originalSize - outputStats.size) / originalSize) *
                     100
                 ).toFixed(2),
                 dimensions: {
@@ -91,9 +81,6 @@ app.post("/convert", upload.array("images"), async (req, res) => {
                         (await sharp(outputPath).metadata()).height,
                 },
             });
-
-            // 입력 파일 삭제 (선택사항)
-            await fs.unlink(inputPath);
         }
 
         res.json({

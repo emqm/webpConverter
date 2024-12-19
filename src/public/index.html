@@ -4,79 +4,49 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>WebP 이미지 변환기</title>
-        <style>
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f5f5f5;
-            }
-            .container {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
-            input[type="file"],
-            input[type="number"] {
-                width: 100%;
-                padding: 8px;
-                margin-bottom: 10px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-            }
-            button {
-                background-color: #4caf50;
-                color: white;
-                padding: 10px 15px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            button:hover {
-                background-color: #45a049;
-            }
-            .results {
-                margin-top: 20px;
-            }
-            .result-item {
-                background: #f9f9f9;
-                padding: 10px;
-                margin-bottom: 10px;
-                border-radius: 4px;
-            }
-            .progress {
-                display: none;
-                margin-top: 20px;
-                text-align: center;
-                color: #666;
-            }
-        </style>
+        <link rel="stylesheet" href="styles.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     </head>
     <body>
         <div class="container">
             <h1>WebP 이미지 변환기</h1>
             <form id="convertForm">
                 <div class="form-group">
-                    <label for="images">이미지 선택 (JPG, PNG)</label>
-                    <input
-                        type="file"
-                        id="images"
-                        name="images"
-                        multiple
-                        accept=".jpg,.jpeg,.png"
-                        required
-                    />
+                    <label>이미지 선택 방식</label>
+                    <div class="file-input-container">
+                        <input
+                            type="file"
+                            id="singleImage"
+                            name="images"
+                            accept=".jpg,.jpeg,.png"
+                            class="hidden-input"
+                        />
+                        <input
+                            type="file"
+                            id="folderImages"
+                            name="images"
+                            webkitdirectory
+                            directory
+                            accept=".jpg,.jpeg,.png"
+                            class="hidden-input"
+                        />
+
+                        <button
+                            type="button"
+                            onclick="document.getElementById('singleImage').click()"
+                            class="select-btn"
+                        >
+                            단일 이미지 선택
+                        </button>
+                        <button
+                            type="button"
+                            onclick="document.getElementById('folderImages').click()"
+                            class="select-btn spacing-left"
+                        >
+                            폴더 선택
+                        </button>
+                    </div>
+                    <div id="selectedFiles">선택된 파일: 없음</div>
                 </div>
                 <div class="form-group">
                     <label for="quality">품질 (1-100)</label>
@@ -89,7 +59,8 @@
                         value="80"
                     />
                 </div>
-                <div class="form-group">
+
+                <div class="form-group maxWidth">
                     <label for="maxWidth">최대 가로 크기 (픽셀)</label>
                     <input
                         type="number"
@@ -109,97 +80,12 @@
                         placeholder="원본 크기 유지"
                     />
                 </div>
-                <button type="submit">변환하기</button>
+                <button type="submit" class="convert-btn">변환하기</button>
             </form>
             <div id="progress" class="progress">변환 중...</div>
             <div id="results" class="results"></div>
         </div>
 
-        <script>
-            document
-                .getElementById("convertForm")
-                .addEventListener("submit", async (e) => {
-                    e.preventDefault();
-
-                    const formData = new FormData();
-                    const files = document.getElementById("images").files;
-                    const quality = document.getElementById("quality").value;
-                    const maxWidth = document.getElementById("maxWidth").value;
-                    const maxHeight =
-                        document.getElementById("maxHeight").value;
-
-                    // 파일 추가
-                    for (let file of files) {
-                        formData.append("images", file);
-                    }
-
-                    // 옵션 추가
-                    formData.append("quality", quality);
-                    if (maxWidth) formData.append("maxWidth", maxWidth);
-                    if (maxHeight) formData.append("maxHeight", maxHeight);
-
-                    // 진행 상태 표시
-                    document.getElementById("progress").style.display = "block";
-                    document.getElementById("results").innerHTML = "";
-
-                    try {
-                        const response = await fetch("/convert", {
-                            method: "POST",
-                            body: formData,
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            const resultsHtml = data.results
-                                .map(
-                                    (result) => `
-                        <div class="result-item">
-                            <h3>${result.originalName}</h3>
-                            <p>원본 크기: ${formatBytes(
-                                result.originalSize
-                            )}</p>
-                            <p>변환 후 크기: ${formatBytes(
-                                result.convertedSize
-                            )}</p>
-                            <p>압축률: ${result.compressionRatio}%</p>
-                            <p>크기(원본): ${result.dimensions.original}</p>
-                            <p>크기(변환): ${result.dimensions.converted}</p>
-                            <p><a href="/output/${
-                                result.webpName
-                            }" download>다운로드</a></p>
-                        </div>
-                    `
-                                )
-                                .join("");
-
-                            document.getElementById("results").innerHTML =
-                                resultsHtml;
-                        } else {
-                            throw new Error(data.message);
-                        }
-                    } catch (error) {
-                        document.getElementById("results").innerHTML = `
-                    <div class="error">
-                        오류가 발생했습니다: ${error.message}
-                    </div>
-                `;
-                    }
-
-                    document.getElementById("progress").style.display = "none";
-                });
-
-            function formatBytes(bytes) {
-                if (bytes === 0) return "0 Bytes";
-                const k = 1024;
-                const sizes = ["Bytes", "KB", "MB", "GB"];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return (
-                    parseFloat((bytes / Math.pow(k, i)).toFixed(2)) +
-                    " " +
-                    sizes[i]
-                );
-            }
-        </script>
+        <script src="script.js"></script>
     </body>
 </html>
