@@ -1,6 +1,7 @@
 # WebP Converter
 
 JPG, PNG 이미지를 WebP 형식으로 변환하는 웹 애플리케이션입니다. 이미지 크기 조절과 품질 설정이 가능하며, 웹 인터페이스를 통해 쉽게 사용할 수 있습니다.
+![webConverter](https://github.com/user-attachments/assets/7561860f-296f-4bfd-8d56-869a05d43703)
 
 ## 주요 기능
 
@@ -54,3 +55,4 @@ npm start
 
 - 입력 가능한 이미지 형식: JPG, JPEG, PNG
 - 업로드 가능한 최대 파일 크기는 서버 설정에 따라 다름
+
