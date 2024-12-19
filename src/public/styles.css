@@ -171,8 +171,12 @@ input[type="number"] {
     padding: 8px 0;
 }
 
-#afterBytes {
+#backBlue {
     background-color: #a2dcf2;
+}
+
+#backRed {
+    background-color: #f07269;
 }
 
 /* 에러 메시지 */
@@ -182,4 +186,18 @@ input[type="number"] {
     margin-top: 10px;
     border-radius: 4px;
     background-color: #ffebee;
+}
+
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin: 0;
+}
+
+.checkbox-container label {
+    font-size: 14px;
 }

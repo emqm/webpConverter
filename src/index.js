@@ -27,12 +27,18 @@ app.post("/convert", upload.array("images"), async (req, res) => {
         const results = [];
         const options = {
             quality: parseInt(req.body.quality) || 80,
+            keepOriginalName: req.body.keepOriginalName === "true",
             maxWidth: parseInt(req.body.maxWidth) || null,
             maxHeight: parseInt(req.body.maxHeight) || null,
         };
 
-        for (const file of files) {
-            const outputFileName = `${path.parse(file.originalname).name}.webp`;
+        for (const [index, file] of files.entries()) {
+            // 한글 파일명 처리
+            const decodedFileName = decodeURIComponent(file.originalname);
+
+            const outputFileName = options.keepOriginalName
+                ? `${path.parse(decodedFileName).name}.webp`
+                : `${String(index + 1).padStart(2, "0")}.webp`;
             const outputPath = path.join("src/public/output", outputFileName);
 
             // 이미지 처리 파이프라인
@@ -65,7 +71,7 @@ app.post("/convert", upload.array("images"), async (req, res) => {
             const originalSize = file.size; // 원본 파일 크기는 메모리에서 가져옴
 
             results.push({
-                originalName: file.originalname,
+                originalName: decodedFileName,
                 webpName: outputFileName,
                 originalSize: originalSize,
                 convertedSize: outputStats.size,

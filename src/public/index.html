@@ -45,11 +45,24 @@
                         >
                             폴더 선택
                         </button>
+                        <div class="checkbox-container spacing-left">
+                            <input
+                                type="checkbox"
+                                id="keepOriginalName"
+                                name="keepOriginalName"
+                                checked
+                            />
+                            <label
+                                for="keepOriginalName"
+                                style="cursor: pointer"
+                                >파일 이름 유지</label
+                            >
+                        </div>
                     </div>
                     <div id="selectedFiles">선택된 파일: 없음</div>
                 </div>
                 <div class="form-group">
-                    <label for="quality">품질 (1-100)</label>
+                    <label for="quality">품질 (1-100) </label>
                     <input
                         type="number"
                         id="quality"
@@ -58,8 +71,8 @@
                         max="100"
                         value="80"
                     />
+                    <span>권장) PNG: 100, JPG: 80</span>
                 </div>
-
                 <div class="form-group maxWidth">
                     <label for="maxWidth">최대 가로 크기 (픽셀)</label>
                     <input

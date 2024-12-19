@@ -27,17 +27,26 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
             ? document.getElementById("singleImage").files
             : document.getElementById("folderImages").files;
 
+    const keepOriginalName =
+        document.getElementById("keepOriginalName").checked;
     const quality = document.getElementById("quality").value;
     const maxWidth = document.getElementById("maxWidth").value;
     const maxHeight = document.getElementById("maxHeight").value;
 
     // 파일 추가
     for (let file of files) {
-        formData.append("images", file);
+        const encodedFileName = encodeURIComponent(file.name);
+
+        const newFile = new File([file], encodedFileName, {
+            type: file.type,
+        });
+
+        formData.append("images", newFile);
     }
 
     // 옵션 추가
     formData.append("quality", quality);
+    formData.append("keepOriginalName", keepOriginalName);
     if (maxWidth) formData.append("maxWidth", maxWidth);
     if (maxHeight) formData.append("maxHeight", maxHeight);
 
@@ -78,13 +87,13 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
           <button class="download-all-btn">전체 다운로드</button>
       </div>
   `;
-
             const resultsHtml = `
                 ${totalSummary}
                 <table class="results-table">
                     <thead>
                         <tr>
-                            <th>파일명</th>
+                            <th>원본 파일명</th>
+                            <th>변환 파일명</th>
                             <th>원본 용량</th>
                             <th>변환 후 용량</th>
                             <th>압축률</th>
@@ -98,17 +107,26 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
                             .map(
                                 (result) => `
                             <tr>
-                                <td>${result.originalName}</td>
-                                <td>${formatBytes(result.originalSize)}</td>
-                                <td id="afterBytes">${formatBytes(
-                                    result.convertedSize
+                                <td>${decodeURIComponent(
+                                    result.originalName
                                 )}</td>
-                                <td>${result.compressionRatio}%</td>
+                                <td>${decodeURIComponent(result.webpName)}</td>
+                                <td>${formatBytes(result.originalSize)}</td>
+                                <td id=${
+                                    result.originalSize > result.convertedSize
+                                        ? "backBlue"
+                                        : "backRed"
+                                }>${formatBytes(result.convertedSize)}</td>
+                                <td id=${
+                                    result.compressionRatio < 30
+                                        ? "backRed"
+                                        : ""
+                                }>${result.compressionRatio}%</td>
                                 <td>${result.dimensions.original}</td>
                                 <td>${result.dimensions.converted}</td>
-                                <td><a href="/output/${
+                                <td><a href="/output/${encodeURIComponent(
                                     result.webpName
-                                }" download>다운로드</a></td>
+                                )}" download>다운로드</a></td>
                             </tr>
                         `
                             )
@@ -141,9 +159,28 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
 
 function updateSelectedFiles(files) {
     const fileCount = files.length;
+    let jpgCount = 0;
+    let pngCount = 0;
+    let etcCount = 0;
+
+    for (const file of files) {
+        const fileType = file.type;
+
+        if (fileType === "image/jpeg" || fileType === "image/jpg") {
+            jpgCount += 1;
+        } else if (fileType === "image/png") {
+            pngCount += 1;
+        } else {
+            etcCount += 1;
+        }
+    }
+
     const fileList = document.getElementById("selectedFiles");
     if (fileCount > 0) {
-        fileList.textContent = `선택된 파일: ${fileCount}개`;
+        fileList.textContent = `선택된 파일: ${fileCount}개${
+            jpgCount !== 0 ? `, jpg ${jpgCount}개` : ""
+        }  ${pngCount !== 0 ? `, png ${pngCount}개` : ""}
+        ${etcCount !== 0 ? `, 지원하지 않는 형식 ${etcCount}개` : ""}`;
     } else {
         fileList.textContent = "선택된 파일: 없음";
     }
