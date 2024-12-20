@@ -27,8 +27,15 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
             ? document.getElementById("singleImage").files
             : document.getElementById("folderImages").files;
 
-    const keepOriginalName =
-        document.getElementById("keepOriginalName").checked;
+    // 파일 이름 옵션 가져오기
+    const fileNameOption = document.querySelector(
+        'input[name="fileNameOption"]:checked'
+    ).value;
+    const customFileName =
+        fileNameOption === "custom"
+            ? document.getElementById("customFileName").value
+            : "";
+
     const quality = document.getElementById("quality").value;
     const maxWidth = document.getElementById("maxWidth").value;
     const maxHeight = document.getElementById("maxHeight").value;
@@ -36,17 +43,16 @@ document.getElementById("convertForm").addEventListener("submit", async (e) => {
     // 파일 추가
     for (let file of files) {
         const encodedFileName = encodeURIComponent(file.name);
-
         const newFile = new File([file], encodedFileName, {
             type: file.type,
         });
-
         formData.append("images", newFile);
     }
 
     // 옵션 추가
     formData.append("quality", quality);
-    formData.append("keepOriginalName", keepOriginalName);
+    formData.append("fileNameOption", fileNameOption);
+    formData.append("customFileName", customFileName);
     if (maxWidth) formData.append("maxWidth", maxWidth);
     if (maxHeight) formData.append("maxHeight", maxHeight);
 
@@ -194,7 +200,7 @@ function formatBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-// 전체 다운로드 함수 추가
+// 전체 다운로드 함수
 async function downloadAllFiles(results) {
     const zip = new JSZip();
 

@@ -45,18 +45,44 @@
                         >
                             폴더 선택
                         </button>
-                        <div class="checkbox-container spacing-left">
-                            <input
-                                type="checkbox"
-                                id="keepOriginalName"
-                                name="keepOriginalName"
-                                checked
-                            />
-                            <label
-                                for="keepOriginalName"
-                                style="cursor: pointer"
-                                >파일 이름 유지</label
-                            >
+                        <div class="radio-container spacing-left">
+                            <div class="radio-group">
+                                <input
+                                    type="radio"
+                                    id="keepOriginalName"
+                                    name="fileNameOption"
+                                    value="keepOriginal"
+                                    checked
+                                />
+                                <label for="keepOriginalName"
+                                    >파일 이름 유지</label
+                                >
+                            </div>
+                            <div class="radio-group">
+                                <input
+                                    type="radio"
+                                    id="useNumbering"
+                                    name="fileNameOption"
+                                    value="numbering"
+                                />
+                                <label for="useNumbering">숫자 번호</label>
+                            </div>
+                            <div class="radio-group">
+                                <input
+                                    type="radio"
+                                    id="useCustomName"
+                                    name="fileNameOption"
+                                    value="custom"
+                                />
+                                <label for="useCustomName">직접 입력</label>
+                                <input
+                                    type="text"
+                                    id="customFileName"
+                                    name="customFileName"
+                                    placeholder="파일 이름 입력"
+                                    disabled
+                                />
+                            </div>
                         </div>
                     </div>
                     <div id="selectedFiles">선택된 파일: 없음</div>
@@ -69,7 +95,7 @@
                         name="quality"
                         min="1"
                         max="100"
-                        value="80"
+                        value="100"
                     />
                     <span>권장) PNG: 100, JPG: 80</span>
                 </div>
@@ -99,6 +125,18 @@
             <div id="results" class="results"></div>
         </div>
 
+        <script>
+            // 라디오 버튼 변경 시 직접 입력 텍스트 필드 활성화/비활성화
+            document
+                .querySelectorAll('input[name="fileNameOption"]')
+                .forEach((radio) => {
+                    radio.addEventListener("change", function () {
+                        const customFileNameInput =
+                            document.getElementById("customFileName");
+                        customFileNameInput.disabled = this.value !== "custom";
+                    });
+                });
+        </script>
         <script src="script.js"></script>
     </body>
 </html>

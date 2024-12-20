@@ -27,7 +27,8 @@ app.post("/convert", upload.array("images"), async (req, res) => {
         const results = [];
         const options = {
             quality: parseInt(req.body.quality) || 80,
-            keepOriginalName: req.body.keepOriginalName === "true",
+            fileNameOption: req.body.fileNameOption || "keepOriginal",
+            customFileName: req.body.customFileName || "",
             maxWidth: parseInt(req.body.maxWidth) || null,
             maxHeight: parseInt(req.body.maxHeight) || null,
         };
@@ -36,13 +37,35 @@ app.post("/convert", upload.array("images"), async (req, res) => {
             // 한글 파일명 처리
             const decodedFileName = decodeURIComponent(file.originalname);
 
-            const outputFileName = options.keepOriginalName
-                ? `${path.parse(decodedFileName).name}.webp`
-                : `${String(index + 1).padStart(2, "0")}.webp`;
+            // 파일명 생성 로직
+            let outputFileName;
+            switch (options.fileNameOption) {
+                case "keepOriginal":
+                    outputFileName = `${path.parse(decodedFileName).name}.webp`;
+                    break;
+                case "numbering":
+                    outputFileName = `${String(index + 1).padStart(
+                        2,
+                        "0"
+                    )}.webp`;
+                    break;
+                case "custom":
+                    if (files.length === 1) {
+                        outputFileName = `${options.customFileName}.webp`;
+                    } else {
+                        outputFileName = `${options.customFileName}_${String(
+                            index + 1
+                        ).padStart(2, "0")}.webp`;
+                    }
+                    break;
+                default:
+                    outputFileName = `${path.parse(decodedFileName).name}.webp`;
+            }
+
             const outputPath = path.join("src/public/output", outputFileName);
 
             // 이미지 처리 파이프라인
-            let pipeline = sharp(file.buffer); // buffer 사용
+            let pipeline = sharp(file.buffer);
 
             // 원본 이미지 메타데이터
             const metadata = await pipeline.metadata();
@@ -68,7 +91,7 @@ app.post("/convert", upload.array("images"), async (req, res) => {
 
             // 변환된 파일 정보
             const outputStats = await fs.stat(outputPath);
-            const originalSize = file.size; // 원본 파일 크기는 메모리에서 가져옴
+            const originalSize = file.size;
 
             results.push({
                 originalName: decodedFileName,
